@@ -1,0 +1,25 @@
+{
+  "name": "eggheadio-test-production-apps-with-cypress",
+  "version": "1.0.0",
+  "description": "Notes and annotations for Egghead's Test Production Ready Apps with Cypress course: https://egghead.io/courses/test-production-ready-apps-with-cypress",
+  "main": ".huskyrc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/larrybotha/eggheadio-test-production-apps-with-cypress.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/larrybotha/eggheadio-test-production-apps-with-cypress/issues"
+  },
+  "homepage": "https://github.com/larrybotha/eggheadio-test-production-apps-with-cypress#readme",
+  "devDependencies": {
+    "doctoc": "^1.4.0",
+    "husky": "^3.0.5",
+    "lint-staged": "^9.2.5"
+  }
+}

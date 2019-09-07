@@ -1,0 +1,10 @@
+name: test-production-apps-with-cypress
+root: <%= Dir.pwd %>
+
+windows:
+  - frontend:
+      layout: main-vertical
+      panes:
+        - vim README.md
+        -
+
