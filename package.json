@@ -9,7 +9,8 @@
     "api": "node --inspect server.js",
     "build": "react-scripts build",
     "eject": "react-scripts eject",
-    "test": "react-scripts test --env=node"
+    "test": "react-scripts test --env=node",
+    "cypress": "cypress open"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
   "homepage": "https://github.com/larrybotha/eggheadio-test-production-apps-with-cypress#readme",
   "devDependencies": {
     "concurrently": "^4.1.2",
+    "cypress": "^3.4.1",
     "doctoc": "^1.4.0",
     "husky": "^3.0.5",
     "json-server": "^0.15.1",
@@ -45,6 +47,11 @@
     "reselect": "^4.0.0",
     "todomvc-app-css": "^2.2.0"
   },
-  "browserslist": [">0.2%", "not dead", "not ie <= 11", "not op_mini all"],
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
   "proxy": "http://localhost:3000/"
 }

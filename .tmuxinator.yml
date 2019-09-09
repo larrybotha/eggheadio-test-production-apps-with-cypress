@@ -6,5 +6,8 @@ windows:
       layout: main-vertical
       panes:
         - vim README.md
+        - npm run start
+        - npm run test
+        - npm run cypress
         -
 

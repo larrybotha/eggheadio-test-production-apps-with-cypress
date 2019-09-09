@@ -9,6 +9,11 @@
       "id": 4,
       "completed": true,
       "text": "Goodnight moon"
+    },
+    {
+      "id": 5,
+      "completed": true,
+      "text": "asd\\"
     }
   ]
 }
