@@ -8,6 +8,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
 
 - [1. Course Introduction: Test Production Ready Apps with Cypress](#1-course-introduction-test-production-ready-apps-with-cypress)
 - [2. Install Cypress in a Production Application](#2-install-cypress-in-a-production-application)
+- [3. Setup Your Cypress Dev Environment](#3-setup-your-cypress-dev-environment)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -80,3 +81,5 @@ cypress
 
 This also demonstrates that Cypress can be run against both local and remote
 applications.
+
+## 3. Setup Your Cypress Dev Environment
