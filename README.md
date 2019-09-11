@@ -8,6 +8,9 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
 
 - [1. Course Introduction: Test Production Ready Apps with Cypress](#1-course-introduction-test-production-ready-apps-with-cypress)
 - [2. Install Cypress in a Production Application](#2-install-cypress-in-a-production-application)
+- [3. Setup Your Cypress Dev Environment](#3-setup-your-cypress-dev-environment)
+  - [Custom Typescript config for code hints](#custom-typescript-config-for-code-hints)
+  - [Cypress project configs](#cypress-project-configs)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -80,3 +83,49 @@ cypress
 
 This also demonstrates that Cypress can be run against both local and remote
 applications.
+
+## 3. Setup Your Cypress Dev Environment
+
+### Custom Typescript config for code hints
+
+The example Cypress test files include a triple-slash directive for
+intelli-sense in VSCode.
+
+```javascript
+/// <reference types="Cypress" />
+```
+
+This doesn't help in Vim, but we can rename specs to `.ts`, and omni-completion
+will kick in (given you have the correct plugins).
+
+This doesn't mean that the triple-slash directive can be removed, however, as
+your project may not be configured for Typescript, or for Typescript to find
+Cypress definitions.
+
+To address this, a `tsconfig.json` can be added to the root of of the `cypress/`
+folder indicating to Typescript where to find definitions for Cypress:
+
+```json
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "baseUrl": "../node_modules",
+    "types": ["cypress"]
+  },
+  "include": ["**/*.*"]
+}
+```
+
+Now it's safe to remove the triple-slash directive and benefit from
+omni-completion / intelli-sense.
+
+### Cypress project configs
+
+Cypress has many configurable settings that can be managed via a `cypress.json`
+in the root of one's project. One such setting is the `baseUrl` for requests:
+
+```json
+{
+  "baseUrl": "http://localhost:5000"
+}
+```
