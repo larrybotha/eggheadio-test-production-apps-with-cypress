@@ -11,6 +11,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
 - [3. Setup Your Cypress Dev Environment](#3-setup-your-cypress-dev-environment)
   - [Custom Typescript config for code hints](#custom-typescript-config-for-code-hints)
   - [Cypress project configs](#cypress-project-configs)
+- [4. Write Your First Cypress Integration Test](#4-write-your-first-cypress-integration-test)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -129,3 +130,5 @@ in the root of one's project. One such setting is the `baseUrl` for requests:
   "baseUrl": "http://localhost:5000"
 }
 ```
+
+## 4. Write Your First Cypress Integration Test
