@@ -10,6 +10,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
 - [2. Install Cypress in a Production Application](#2-install-cypress-in-a-production-application)
 - [3. Setup Your Cypress Dev Environment](#3-setup-your-cypress-dev-environment)
   - [Custom Typescript config for code hints](#custom-typescript-config-for-code-hints)
+  - [Cypress project configs](#cypress-project-configs)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -117,3 +118,14 @@ folder indicating to Typescript where to find definitions for Cypress:
 
 Now it's safe to remove the triple-slash directive and benefit from
 omni-completion / intelli-sense.
+
+### Cypress project configs
+
+Cypress has many configurable settings that can be managed via a `cypress.json`
+in the root of one's project. One such setting is the `baseUrl` for requests:
+
+```json
+{
+  "baseUrl": "http://localhost:5000"
+}
+```
