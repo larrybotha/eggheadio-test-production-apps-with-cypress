@@ -9,5 +9,32 @@ describe('Todo application', () => {
       .parent()
       .find('.toggle')
       .should('not.be.checked');
+
+    /**
+     * Find using `data-cy` attribute
+     */
+    cy.get('[data-cy=todo-item-3]')
+      .should('exist')
+      .should('not.have.class', 'completed')
+      .find('.toggle')
+      .should('not.be.checked');
+
+    /**
+     *  Use .contains
+     */
+    cy.contains('Hello world')
+      .should('exist')
+      .should('not.have.class', 'completed')
+      .find('.toggle')
+      .should('not.be.checked');
+
+    /**
+     * Find using data-testid with @testing-library
+     */
+    cy.findByTestId('todo-item-3')
+      .should('exist')
+      .should('not.have.class', 'completed')
+      .find('.toggle')
+      .should('not.be.checked');
   });
 });
