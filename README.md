@@ -11,6 +11,8 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
 - [3. Setup Your Cypress Dev Environment](#3-setup-your-cypress-dev-environment)
   - [Custom Typescript config for code hints](#custom-typescript-config-for-code-hints)
   - [Cypress project configs](#cypress-project-configs)
+- [4. Write Your First Cypress Integration Test](#4-write-your-first-cypress-integration-test)
+  - [Using `@testing-library/cypress`](#using-testing-librarycypress)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -129,3 +131,99 @@ in the root of one's project. One such setting is the `baseUrl` for requests:
   "baseUrl": "http://localhost:5000"
 }
 ```
+
+## 4. Write Your First Cypress Integration Test
+
+Let's start from scratch with our own spec: [todos.spec.ts](./cypress/integration/todos.spec.ts)
+
+The first thing to do is to get Cypress to visit our application:
+
+```javascript
+describe('My application', () => {
+  /**
+   * Visit the index page of our application at the url defined in cypress.json
+   */
+  cy.visit('/')
+})
+```
+
+We then `get` elements using Cypress' chained method:
+
+```javascript
+describe('My application', () => {
+  cy.visit('/')
+  cy.get('.todo-list li:nth-child(1)')
+    .should('have.text', 'hello world');
+})
+```
+
+Cypress uses jQuery under the hood, so we can use CSS selectors to get our
+elements. Assertions are then chained using `.should([assertionName], [valueToAsssert])`.
+
+We can also open Chrome's devtools, click on an assertion in the main window,
+and then view details about that assertion in the devtools console.
+
+### Using `@testing-library/cypress`
+
+We can improve on these assertions by using [`@testing-library/cypress`](https://testing-library.com/docs/cypress-testing-library/intro).
+
+To get `@testing-library/cypress`'s helper commands, we need to first install
+the library:
+
+```bash
+$ npm install -D @testing-library/cypress
+```
+
+and then extend Cypress' commands:
+
+```javascript
+# cypress/support/commands.js
+import '@testing-library/cypress/add-commands';
+```
+
+and then, if using Typescript, add `@testing-library`s types:
+
+```json
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "baseUrl": "../node_modules",
+    "types": ["cypress", "@types/testing-library__cypress"]
+  },
+  "include": ["**/*.*"]
+}
+```
+
+Now we have access to a number of `@testing-library/dom` commands to easily get
+elements.
+
+Instead of looking for elements using brittle CSS selectors, we can instead get
+elements by how they appear to users:
+
+```javascript
+describe('My application', () => {
+  cy.visit('/')
+
+  cy.findByText(/hello world/i)
+    .should('exist');
+})
+```
+
+When Cypress is unable to find an element it waits (4500ms by default) for the
+element to change, after which it will throw an error.
+
+This eliminates having to write code that sleeps or waits for the DOM to change
+with Cypress.
+
+We can continue chaining assertions, too:
+
+```javascript
+  cy.findByText(/hello world/i)
+    .should('exist')
+    .should('not.have.class', 'completed')
+    .parent()
+    .find('.toggle')
+    .should('not.be.checked')
+```
+
+Assertions are run one after the other
