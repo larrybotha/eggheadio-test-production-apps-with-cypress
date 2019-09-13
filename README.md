@@ -13,6 +13,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Cypress project configs](#cypress-project-configs)
 - [4. Write Your First Cypress Integration Test](#4-write-your-first-cypress-integration-test)
   - [Using `@testing-library/cypress`](#using-testing-librarycypress)
+- [5. Use the Most Robust Selector for Cypress Tests](#5-use-the-most-robust-selector-for-cypress-tests)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -227,3 +228,99 @@ We can continue chaining assertions, too:
 ```
 
 Assertions are run one after the other
+
+## 5. Use the Most Robust Selector for Cypress Tests
+
+[todos.spec.ts](./cypress/integration/todos.spec.ts)
+
+Querying elements by CSS selectors is brittle for the following reasons:
+
+- if the DOM structure changes, our tests fails
+- if the classes on the elements we're targeting fail, our tests may fail if
+    they depend on those classes
+
+To address this we can do one of the following:
+
+- add a `data-cy` attribute to elements and target them using `cy.get`:
+
+    ```javascript
+    # TodoItem.js
+      // ...
+      <li
+        data-cy={`todo-item-${todo.id}`}
+        className={classnames({
+          completed: todo.completed,
+          editing: this.state.editing,
+        })}>
+      // ...
+    ```
+
+    ```javascript
+    # todo.spec.ts
+    // ...
+    cy.get('[data-cy=todo-item-3]')
+      .should('exist')
+      .should('not.have.class', 'completed')
+      .find('.toggle')
+      .should('not.be.checked');
+    // ...
+    ```
+- use Cypress' `.contains` matcher:
+
+    ```javascript
+    # todo.spec.ts
+    // ...
+    cy.contains('Hello world')
+      .should('exist')
+      .should('not.have.class', 'completed')
+      .find('.toggle')
+      .should('not.be.checked');
+    // ...
+    ```
+
+- add a `data-testid` attribute to elements and target them using
+    `@testing-library/cypress`'s `findById` command:
+
+    ```javascript
+    # TodoItem.js
+      // ...
+      <li
+        data-testid={`todo-item-${todo.id}`}
+        className={classnames({
+          completed: todo.completed,
+          editing: this.state.editing,
+        })}>
+      // ...
+    ```
+
+
+    ```javascript
+    # todo.spec.ts
+    // ...
+    cy.findByTestId('todo-item-3')
+      .should('exist')
+      .should('not.have.class', 'completed')
+      .find('.toggle')
+      .should('not.be.checked');
+    // ...
+    ```
+
+- get elements by text, rather than relying on ids:
+
+    ```javascript
+    # todo.spec.ts
+    // ...
+    cy.findByText(/hello world/i)
+      .should('exist')
+      .should('not.have.class', 'completed')
+      .parent()
+      .find('.toggle')
+      .should('not.be.checked');
+    // ...
+    ```
+
+    This is the most reliable way to get elements, and encourages getting
+    elements from the perspective of what users experience.
+
+Getting elements via a regex match is the most reliable option, followed by
+adding a test id attribute to the element.
