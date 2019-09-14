@@ -14,6 +14,10 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
 - [4. Write Your First Cypress Integration Test](#4-write-your-first-cypress-integration-test)
   - [Using `@testing-library/cypress`](#using-testing-librarycypress)
 - [5. Use the Most Robust Selector for Cypress Tests](#5-use-the-most-robust-selector-for-cypress-tests)
+- [6. Debug and Log with Cypress](#6-debug-and-log-with-cypress)
+  - [Debugging](#debugging)
+  - [Logging](#logging)
+  - [Running arbitrary code](#running-arbitrary-code)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -324,3 +328,89 @@ To address this we can do one of the following:
 
 Getting elements via a regex match is the most reliable option, followed by
 adding a test id attribute to the element.
+
+## 6. Debug and Log with Cypress
+
+[06-todos.spec.ts](./cypress/integration/06-todos.spec.ts)
+
+### Debugging
+
+Cypress executes queries asynchonously, so a `debugger` statement in the middle of
+a bunch of assertions is going to be hit before any of the assertions run:
+
+```javascript
+cy.get('.some-element')
+  .should('have.class', 'my-class')
+
+// the debugger will hit this line before running the previous assertion
+debugger;
+
+cy.get('.some-other-element')
+  .should('exist')
+```
+
+Internally, Cypress' assertions can be thought of as an array of tasks that will
+be run sequentially, and asynchronously. A mental model of what's going on above
+could be:
+
+```javascript
+/**
+ * evaluate assertions, building an array
+ *
+ * i.e. [visit, get, should, findByText, should, should, parent, find, should]
+ */
+cy.visit('/');
+
+cy.get('.todo-list li:nth-child(1)').should('have.text', 'Hello world');
+
+cy.findByText(/hello world/i)
+  .should('exist')
+  .should('not.have.class', 'completed')
+  .parent()
+  .find('.toggle')
+  .should('not.be.checked');
+```
+
+Once Cypress has evaluated the full test, it will start popping executions off
+the list until all tests have run, or there is a failing assertion.
+
+What we need is to be able to place `debugger` statements within this
+asynchronous execution, and this can be done in a few ways:
+
+- using `then` within chains:
+
+    ```javascript
+    cy.get('.some-element')
+      .then($el => // do stuff with element)
+    ```
+
+    In this case we get a jQuery object wrapping the element we selected. If,
+    howeever, we chained `.then` on `cy.visit(/some-url)` we'd get the `window`.
+    `.then`'s arguments are contextual.
+
+- using Cypress' `.debug()` chained command:
+
+    ```javascript
+    cy.get('.some-element')
+      .debug()
+    ```
+
+    This allows us to rely on Cypress to drop a breakpoint for us with the same
+    context as if we had used `.then()`.
+
+### Logging
+
+We can log additional information out in our tests:
+
+```javascript
+cy.log('about to load page');
+cy.visit('/');
+```
+
+### Running arbitrary code
+
+Arbitrary code can also be run by using the `.wrap` command:
+
+```javascript
+cy.wrap(5).should('eq', 5)
+```
