@@ -18,6 +18,10 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Debugging](#debugging)
   - [Logging](#logging)
   - [Running arbitrary code](#running-arbitrary-code)
+- [7. Mock Your Backend with Cypress](#7-mock-your-backend-with-cypress)
+  - [`cy.server`](#cyserver)
+  - [Using `cy.route` to mock endpoints](#using-cyroute-to-mock-endpoints)
+  - [Inspecting requests and responses](#inspecting-requests-and-responses)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -414,3 +418,105 @@ Arbitrary code can also be run by using the `.wrap` command:
 ```javascript
 cy.wrap(5).should('eq', 5)
 ```
+
+## 7. Mock Your Backend with Cypress
+
+[07-todos.spec.ts](./cypress/integration/07-todos.spec.ts)
+
+We can see that Cypress is using the data in our backend by updating a todo item
+in the UI, and then evaluating the tests in Cypress.
+
+We don't want our tests running on development data - tests need to isolated
+from development.
+
+There are two options here:
+
+1. stub out every endpoint being tested
+2. create a separate connection with interactions completely isolated from the
+   dev environment
+
+We'll go with the first in this example.
+
+### `cy.server`
+
+To allow for endpoints to mocked out, we need to indicate to Cypress that we
+want a mock server. To do this, we use the `cy.server` command:
+
+```javascript
+cy.server()
+```
+
+This doesn't do any mocking or stubbing; `cy.server` simply allows us to add
+mocks where we want, otherwise requests will pass through to our actual server.
+
+`cy.server` also allows us to spy on network requests and routes.
+
+### Using `cy.route` to mock endpoints
+
+By inspecting the logs of our spec, we can see that Cypress is making an XHR
+request to `/api/todos`:
+
+```
+TEST
+  VISIT /
+  (XHR) GET 200 /api/todos
+```
+
+We can mock out the request:
+
+```javascript
+cy.route('/api/todos', // data to respond with)
+```
+
+Let's generate data using [`test-data-bot`](https://github.com/jackfranklin/test-data-bot):
+
+```javascript
+// cypress/fixtures/generators/todo-items.js
+const {arrayOf, bool, build, fake, incrementingId} = require('test-data-bot');
+
+const todoItemBuilder = build('Todo Item').fields({
+  completed: bool(),
+  id: incrementingId(),
+  text: fake(f => f.lorem.words(3)),
+});
+
+const todoItemsBuilder = (n = 3) => {
+  const builder = build('Todo Items')
+    .fields({array: arrayOf(todoItemBuilder, n)})
+    .map(({array}) => array);
+
+  return builder();
+};
+
+module.exports = {todoItemsBuilder};
+```
+
+Now we can generate data for every mocked endpoint:
+
+```javascript
+// 07-todos.spec.js
+import {arrayOf} from 'test-data-bot';
+import {todoItemsBuilder} from '../fixtures/generators/todo-item';
+
+// ...
+  cy.server()
+
+  cy.route('/api/todos', todoItemsBuilder(3))
+    .as('get-todos');
+
+  cy.wait('@get-todos');
+
+  cy.findAllByTestId(/^todo-item/).should('have.length', 3);
+// ...
+```
+
+We define an alias using `cy.route(...).as('[alias-name]')` for the mocked request,
+and then wait for the request to respond using `cy.wait('@[alias-name]')`.
+
+`cy.route` allows one to define [options](https://docs.cypress.io/api/commands/route.html#Options)
+to the mocked endpoint, such as delays, forcing 404s, setting headers, and method.
+
+### Inspecting requests and responses
+
+Clicking on the XHR request in the Cypress logs while dev tools is open will
+reveal request and response data for the request.
