@@ -22,6 +22,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [`cy.server`](#cyserver)
   - [Using `cy.route` to mock endpoints](#using-cyroute-to-mock-endpoints)
   - [Inspecting requests and responses](#inspecting-requests-and-responses)
+- [8. Assert on Your Redux Store with Cypress](#8-assert-on-your-redux-store-with-cypress)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -421,7 +422,7 @@ cy.wrap(5).should('eq', 5)
 
 ## 7. Mock Your Backend with Cypress
 
-[07-todos.spec.ts](./cypress/integration/07-todos.spec.ts)
+[07-todos.spec.js](./cypress/integration/07-todos.spec.js)
 
 We can see that Cypress is using the data in our backend by updating a todo item
 in the UI, and then evaluating the tests in Cypress.
@@ -520,3 +521,54 @@ to the mocked endpoint, such as delays, forcing 404s, setting headers, and metho
 
 Clicking on the XHR request in the Cypress logs while dev tools is open will
 reveal request and response data for the request.
+
+## 8. Assert on Your Redux Store with Cypress
+
+- [08-todos.spec.js](./cypress/integration/08-todos.spec.js)
+- [src/index.js](./src/index.js)
+
+At the moment we're only evaluating the interface of our app, but it could be
+useful to assert on the internals. e.g. we may want to assert that a redux store
+contains the values we expect.
+
+To do this, we need our app to be aware of Cypress so that we can provide
+information to Cypress that we can assert on within tests.
+
+Cypress exposes itself on the `window` object, which we can then use to
+determine whether we're in the context of Cypress or not, and if so, assign
+values in our app to the window so that Cypress has access to them:
+
+```javascript
+// src/index.js
+
+// ...
+
+if (window.Cypress) {
+  window.store = store;
+}
+
+// ...
+```
+
+Now, in our tests we can access `window` via Cypress' `cy.window` method:
+
+```javascript
+cy.window().then($window => console.log($window.store))
+// => redux store we exposed
+```
+
+Cypress allows us to get objects on `window` via `.its`, and allows us to execute
+functions using `.invoke`:
+
+```javascript
+// invoke store.getState so we can assert on the store
+cy.window()
+  .its('store')
+  .invoke('getState')
+  .then(state => {
+    console.log(state);
+
+    return state;
+  })
+  .should('deep.equal', {todos: todoItems, visibilityFilter: 'show_all'});
+```
