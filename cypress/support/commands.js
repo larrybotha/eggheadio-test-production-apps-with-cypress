@@ -24,3 +24,45 @@ import '@testing-library/cypress/add-commands';
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('getStoreState', stateProp => {
+  const log = Cypress.log({name: 'getStoreState'});
+  const logState = state => {
+    log.set({
+      // Cypress logs output
+      message: JSON.stringify(state),
+      // devtools console output
+      consoleProps: () => state,
+    });
+
+    /**
+     * Return the state so that we can continue chaining on it
+     */
+    return state;
+  };
+
+  return (
+    cy
+      .window({log: false})
+      /**
+       * Don't use `its` and `invoke` because we can't supress their logs
+       */
+      // .its('store')
+      // .invoke('getState')
+
+      /**
+       * Instead, retrieve the store directly from the window
+       */
+      .then($window => $window.store.getState())
+      .then(state => {
+        if (stateProp) {
+          return cy
+            .wrap(state, {log: false})
+            .its(stateProp)
+            .then(logState);
+        } else {
+          return cy.wrap(state, {log: false}).then(logState);
+        }
+      })
+  );
+});
