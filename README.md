@@ -23,6 +23,10 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Using `cy.route` to mock endpoints](#using-cyroute-to-mock-endpoints)
   - [Inspecting requests and responses](#inspecting-requests-and-responses)
 - [8. Assert on Your Redux Store with Cypress](#8-assert-on-your-redux-store-with-cypress)
+- [9. Create Custom Cypress Commands](#9-create-custom-cypress-commands)
+  - [Suppressing commands inside a custom command](#suppressing-commands-inside-a-custom-command)
+  - [Logging state to the console in a custom command](#logging-state-to-the-console-in-a-custom-command)
+  - [User-defined state in the console](#user-defined-state-in-the-console)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -568,7 +572,133 @@ cy.window()
   .then(state => {
     console.log(state);
 
-    return state;
+    retur state;
   })
   .should('deep.equal', {todos: todoItems, visibilityFilter: 'show_all'});
+```
+
+## 9. Create Custom Cypress Commands
+
+- [09-todos.spec.js](./cypress/integration/09-todos.spec.js)
+- [cypress/support/commands.js](./cypress/support/commands.js)
+
+Getting the store in the previous lesson would be tedious if we had to use the
+same sequence of commands in multiple places. To address this, Cypress allows
+one to create custom commands that can be chained like Cypress' native commands.
+
+There are 3 types of commands that can be created in Cypress:
+
+- parent commands: commands that start a chain of assertions. Parent commands
+    ignore any commands that appear before them in a chain
+- child commands: commands that follow a parent command or another child command
+- dual commands: commands that can be either at the beginning of a chain or in
+    the middle
+
+We can simplify the redux store command by creating a parent command in
+`cypress/support/commands.js`:
+
+```javascript
+# cypress/support/commands.js
+Cypress.Cammands.add('getStoreState', () => {
+  return cy.window()
+    .its('store')
+    .invoke('getState')
+})
+```
+
+### Suppressing commands inside a custom command
+
+Currently, despite having our custom command, all the internals of the command
+are still output. i.e. we can see the `ITS` and `INVOKE` logs in Cypress'
+output. It'd be convenient if we can suppress these, and show a more meaningful
+message.
+
+Cypress allows one to create a custom log using `Cypress.log`:
+
+```javascript
+const log = Cypress.log({name: 'myLogName'}); // => writes MYLOGNAME to Cypress log
+```
+
+Many Cypress commands can also have their log output suppressed:
+
+```javascript
+// suppress output of `cy.window` log
+cy.window({log: false});
+```
+
+Commmands such as `its` and `invoke`, however, can't be suppressed. In this
+case we can forego their usage so that we don't have to deal with their logs at
+all. We cam do this by chaining on `cy.window` with then to explicitly return
+the state from the store:
+
+```javascript
+const log = Cypress.log({name: 'getStoreState'});
+
+cy.window().then($window => $window.store.getState());
+```
+
+### Logging state to the console in a custom command
+
+We've suppressed native logs and added a custom log to our custom command, but
+we don't have access to the store in our logs in the dev tools console.
+
+Cypress allows one to modify logs within chains and define what is output to the
+console:
+
+```javascript
+cy.window({log: false})
+  .then($window => $window.store.getState())
+  .then(state => {
+    log.set({
+      // print out a stringified version of our state in the Cypress logs
+      message: JSON.stringify(state),
+      // return the store's state to be output in the console
+      consoleProps: () => {
+        return state;
+      }
+    })
+
+    return state;
+  })
+```
+
+Now, by clicking on our `GETSTORESTATE` log in the Cypress output, we can
+inspect the store's state in the dev tools console.
+
+### User-defined state in the console
+
+It's plausible that we could end up logging a massive state object to the
+console which may end up being tedious to traverse.
+
+To make this more user friendly, we can accept a property name in our custom
+command definition that can be used to return specific properties in our state:
+
+```javascript
+Cypress.Commands.add('getStoreState', stateProp => {
+  const log = Cypress.log({name: 'getStoreState'});
+  const logState = state => {
+    log.set({
+      message: JSON.stringify(state),
+      consoleProps: () => state,
+    });
+
+    return state;
+  };
+
+  return (
+    cy
+      .window({log: false})
+      .then($window => $window.store.getState())
+      .then(state => {
+        if (stateProp) {
+          return cy
+            .wrap(state, {log: false})
+            .its(stateProp)
+            .then(logState);
+        } else {
+          return cy.wrap(state, {log: false}).then(logState);
+        }
+      })
+  );
+});
 ```
