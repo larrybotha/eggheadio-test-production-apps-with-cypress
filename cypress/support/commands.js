@@ -1,4 +1,5 @@
 import '@testing-library/cypress/add-commands';
+import _ from 'lodash';
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -66,3 +67,27 @@ Cypress.Commands.add('getStoreState', stateProp => {
       })
   );
 });
+
+/**
+ * Create a child command for filtering on previous values in a chain.
+ *
+ * Setting prevSubject: true indicates to Cypress that this is a child command
+ */
+Cypress.Commands.add(
+  'lo_filter',
+  {prevSubject: true},
+  (subject, predicateFn) => {
+    const result = _.filter(subject, predicateFn);
+
+    /**
+     * Add logs for our custom command
+     */
+    Cypress.log({
+      name: 'lo_filter',
+      message: JSON.stringify(result),
+      consoleProps: () => result,
+    });
+
+    return result;
+  }
+);
