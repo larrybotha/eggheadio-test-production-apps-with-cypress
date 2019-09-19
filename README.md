@@ -27,6 +27,8 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Suppressing commands inside a custom command](#suppressing-commands-inside-a-custom-command)
   - [Logging state to the console in a custom command](#logging-state-to-the-console-in-a-custom-command)
   - [User-defined state in the console](#user-defined-state-in-the-console)
+- [10. Wrap External Libraries with Cypress](#10-wrap-external-libraries-with-cypress)
+  - [Wrapping an entire library](#wrapping-an-entire-library)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -702,3 +704,82 @@ Cypress.Commands.add('getStoreState', stateProp => {
   );
 });
 ```
+
+## 10. Wrap External Libraries with Cypress
+
+[10-todos.spec.js](./cypress/integration/10-todos.spec.js)
+
+Because of Cypress' async nature, simply importing a library and attempting to
+use it won't work:
+
+```javascript
+import _ from 'lodash';
+
+// ...
+  // _.filter is not available
+  _.filter(cy.getStoreState('todos'), todo => todo.id === 1);
+// ...
+```
+
+Instead, we can use Cypress' chaining to filter on items once Cypress has access
+to them:
+
+```javascript
+// ...
+
+    cy.getStoreState('todos')
+      .then(todos => _.filter(todos, todo => todo.id === 1))
+      .should('deep.equal', _.filter(todoItems, todo => todo.id === 1));
+
+// ...
+```
+
+We can abtract this by creating another custom command. If we attempt to use
+`.filter` for our custom command, we'll get an error, so we'll use `lo_filter`
+instead:
+
+```javascript
+# cypress/support/commands.js
+
+import lodash from 'lodash';
+
+// ...
+/**
+ * {prevSubject: true} instructs Cypress to treat this command as a child
+ * command, passing in the previous subject for us to operate on
+ */
+Cypress.Commands.add('lo_filter', {prevSubject: true}, (subject, predicateFn) =>
+  _.filter(subject, predicateFn)
+);
+```
+
+### Wrapping an entire library
+
+What if we wanted all of `lodash` available to us?
+
+We can generate our commands as follows:
+
+```javascript
+// cypress/support/commands.js
+
+const loMethodsNames = _.functions(_).map(fnName => `lo_${fnName}`)
+
+loMethodsNames.forEach(loMethodName => {
+  const realName = loMethodName.replace(/^lo_/, '');
+
+  Cypress.Commands.add(loMethodName, {prevSubject: true}, (subject, fn, ...args) => {
+    const result = _[realName](subject, fn, ...args);
+
+    Cypress.log({
+      name: loMethodName,
+      message: JSON.stringify(result),
+      consoleProps: () => result,
+    })
+
+    return result;
+  })
+})
+```
+
+We now have every function in `lodash` available as a chainable `lo_[functionName]`
+in Cypress.
