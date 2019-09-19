@@ -28,6 +28,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Logging state to the console in a custom command](#logging-state-to-the-console-in-a-custom-command)
   - [User-defined state in the console](#user-defined-state-in-the-console)
 - [10. Wrap External Libraries with Cypress](#10-wrap-external-libraries-with-cypress)
+  - [Wrapping an entire library](#wrapping-an-entire-library)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -751,3 +752,34 @@ Cypress.Commands.add('lo_filter', {prevSubject: true}, (subject, predicateFn) =>
   _.filter(subject, predicateFn)
 );
 ```
+
+### Wrapping an entire library
+
+What if we wanted all of `lodash` available to us?
+
+We can generate our commands as follows:
+
+```javascript
+// cypress/support/commands.js
+
+const loMethodsNames = _.functions(_).map(fnName => `lo_${fnName}`)
+
+loMethodsNames.forEach(loMethodName => {
+  const realName = loMethodName.replace(/^lo_/, '');
+
+  Cypress.Commands.add(loMethodName, {prevSubject: true}, (subject, fn, ...args) => {
+    const result = _[realName](subject, fn, ...args);
+
+    Cypress.log({
+      name: loMethodName,
+      message: JSON.stringify(result),
+      consoleProps: () => result,
+    })
+
+    return result;
+  })
+})
+```
+
+We now have every function in `lodash` available as a chainable `lo_[functionName]`
+in Cypress.
