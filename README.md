@@ -782,4 +782,14 @@ loMethodsNames.forEach(loMethodName => {
 ```
 
 We now have every function in `lodash` available as a chainable `lo_[functionName]`
-in Cypress.
+in Cypress:
+
+```javascript
+cy.getStoreState('todos')
+  .lo_find(todo => todo.id === 1)
+  .lo_pick('text')
+  .should(
+    'deep.equal',
+    _.pick(_.find(todoItems, todo => todo.id === 1), 'text')
+  );
+```

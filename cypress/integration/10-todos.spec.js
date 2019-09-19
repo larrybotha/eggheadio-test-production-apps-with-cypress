@@ -38,6 +38,17 @@ describe('Todo application', () => {
       .lo_filter(todo => todo.id === 1)
       .should('deep.equal', _.filter(todoItems, todo => todo.id === 1));
 
+    /**
+     * With the entirety of lodash wrapped, we can now chain any lodash command
+     */
+    cy.getStoreState('todos')
+      .lo_find(todo => todo.id === 1)
+      .lo_pick('text')
+      .should(
+        'deep.equal',
+        _.pick(_.find(todoItems, todo => todo.id === 1), 'text')
+      );
+
     cy.findAllByTestId(/^todo-item/).should('have.length', numTodos);
   });
 });
