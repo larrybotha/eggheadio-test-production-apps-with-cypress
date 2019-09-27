@@ -29,6 +29,10 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [User-defined state in the console](#user-defined-state-in-the-console)
 - [10. Wrap External Libraries with Cypress](#10-wrap-external-libraries-with-cypress)
   - [Wrapping an entire library](#wrapping-an-entire-library)
+- [11. Reuse Data with Cypress Fixtures](#11-reuse-data-with-cypress-fixtures)
+  - [Reference a fixture via a callback](#reference-a-fixture-via-a-callback)
+  - [Reference a fixture via an alias](#reference-a-fixture-via-an-alias)
+  - [Reference a fixture via a property on `this`](#reference-a-fixture-via-a-property-on-this)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -792,4 +796,68 @@ cy.getStoreState('todos')
     'deep.equal',
     _.pick(_.find(todoItems, todo => todo.id === 1), 'text')
   );
+```
+
+## 11. Reuse Data with Cypress Fixtures
+
+[11-todos.spec.js](./cypress/integration/11-todos.spec.js)
+
+Data can be shared in Cypress by adding json inside `cypress/fixtures` and
+reference the data using `cy.fixture([path/to/data.json])`:
+
+Data in fictures can be referenced in 3 ways:
+
+- via a callback
+- via an alias's name
+- via `this[aliasName]`
+
+### Reference a fixture via a callback
+
+```javascript
+// my-test.spec.js
+// ...
+
+  cy.fixture('my-data-.json').then(data => {
+    // use data
+  })
+// ...
+```
+
+### Reference a fixture via an alias
+
+```javascript
+// my-test.spec.js
+// ...
+  cy.fixture('my-data-.json').as('data')
+
+  cy.route('/my-endpoint', '@data')
+// ...
+```
+
+### Reference a fixture via a property on `this`
+
+```javascript
+// my-test.spec.js
+// ...
+  cy.fixture('my-data-.json').as('data')
+
+  cy.route('/my-endpoint', this.data)
+// ...
+```
+
+Tests referencing data via `this` should use function declarations instead of
+fat arrows for the callback to `it`. Fat arrows share the context of the outer
+scope, and this the value of `this` is undefined. To access the correct value
+for`this` a fucntion declaration is required:
+
+```javascript
+// good
+it('[test name]', function() {
+  // access this.myFixturesAlias
+})
+
+// no good
+it('[test name]', () => {
+  // access this.myFixturesAlias
+})
 ```

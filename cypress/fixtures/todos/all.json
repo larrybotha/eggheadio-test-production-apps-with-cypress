@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "text": "Hello World",
+    "completed": false
+  },
+  {
+    "id": 2,
+    "text": "Goodnight moon",
+    "completed": true
+  }
+]
