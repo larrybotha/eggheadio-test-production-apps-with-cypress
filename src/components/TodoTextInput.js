@@ -42,7 +42,7 @@ export default class TodoTextInput extends Component {
           edit: this.props.editing,
           'new-todo': this.props.newTodo,
         })}
-        data-testid="new-todo"
+        data-testid={this.props.editing ? 'todo-edit-input' : 'new-todo'}
         type="text"
         placeholder={this.props.placeholder}
         autoFocus={true}
