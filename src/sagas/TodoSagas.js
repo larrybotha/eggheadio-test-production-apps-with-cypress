@@ -12,7 +12,32 @@ function getBaseUrl() {
   return 'http://localhost:3000';
 }
 
+/**
+ * createTodo now retries if createTodoAttempt fails
+ */
 function* createTodo(action) {
+  try {
+    /**
+     * use redux-saga's retry method to retry the network request 3 times, after
+     * 10ms delays. If all 3 requests fail, then throw
+     */
+    yield retry(3, 1000, createTodoAttempt, action);
+    yield put({type: 'ADD_TODO_SUCCESS'});
+  } catch (err) {
+    yield put({...action, type: 'ADD_TODO_FAIL'});
+  }
+}
+
+/**
+ * separate the actual request from attempts
+ *
+ * If this function throws / errors, the function calling it can handle that
+ * error now.
+ *
+ * In this situation the function calling this generator is going to retry the
+ * request 3 times before giving up
+ */
+function* createTodoAttempt(action) {
   yield axios.post(`${getBaseUrl()}/api/todos`, {
     text: action.text,
     completed: false,
