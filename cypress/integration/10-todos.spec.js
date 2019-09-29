@@ -1,4 +1,5 @@
 import _ from 'lodash';
+
 import {arrayOf} from 'test-data-bot';
 import {todoItemsBuilder} from '../fixtures/generators/todo-item';
 
