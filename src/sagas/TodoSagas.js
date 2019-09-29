@@ -1,58 +1,99 @@
-import { takeEvery, takeLatest, put, all, select } from "redux-saga/effects";
-import axios from "axios";
+import {
+  takeEvery,
+  takeLatest,
+  put,
+  all,
+  select,
+  retry,
+} from 'redux-saga/effects';
+import axios from 'axios';
 
 function getBaseUrl() {
-  return 'http://localhost:3000'
+  return 'http://localhost:3000';
 }
 
+/**
+ * createTodo now retries if createTodoAttempt fails
+ */
 function* createTodo(action) {
-  yield axios.post(`${getBaseUrl()}/api/todos`, {text: action.text, completed: false})
+  try {
+    /**
+     * use redux-saga's retry method to retry the network request 3 times, after
+     * 10ms delays. If all 3 requests fail, then throw
+     */
+    yield retry(3, 1000, createTodoAttempt, action);
+    yield put({type: 'ADD_TODO_SUCCESS'});
+  } catch (err) {
+    yield put({...action, type: 'ADD_TODO_FAIL'});
+  }
+}
+
+/**
+ * separate the actual request from attempts
+ *
+ * If this function throws / errors, the function calling it can handle that
+ * error now.
+ *
+ * In this situation the function calling this generator is going to retry the
+ * request 3 times before giving up
+ */
+function* createTodoAttempt(action) {
+  yield axios.post(`${getBaseUrl()}/api/todos`, {
+    text: action.text,
+    completed: false,
+  });
 }
 
 export function* fetchTodos() {
-  let response = yield axios.get(`${getBaseUrl()}/api/todos`)
+  let response = yield axios.get(`${getBaseUrl()}/api/todos`);
   let todos = response.data;
 
-  yield put({ type: "TODOS_LOADED", todos });
+  yield put({type: 'TODOS_LOADED', todos});
 }
 
 export function* destroyTodo(action) {
-  yield axios.delete(`${getBaseUrl()}/api/todos/${action.id}`)
+  yield axios.delete(`${getBaseUrl()}/api/todos/${action.id}`);
 }
 
 export function* destroyAllTodos() {
-  let filtered = yield select(state => state.todos.filter(todo => todo.completed))
-  yield put({type: 'LOCAL_CLEAR_COMPLETED'})
-  
-  yield axios.post(`${getBaseUrl()}/api/todos/bulk_delete`, {ids: filtered.map(f => f.id)})
+  let filtered = yield select(state =>
+    state.todos.filter(todo => todo.completed)
+  );
+  yield put({type: 'LOCAL_CLEAR_COMPLETED'});
+
+  yield axios.post(`${getBaseUrl()}/api/todos/bulk_delete`, {
+    ids: filtered.map(f => f.id),
+  });
 }
 
 export function* editTodo(action) {
-  yield axios.put(`${getBaseUrl()}/api/todos/${action.id}`, action.todo)
+  yield axios.put(`${getBaseUrl()}/api/todos/${action.id}`, action.todo);
 }
 
 export function* completeAllTodos() {
-  let todos = yield select(state => state.todos)
-  let allAreMarked = todos.every(todo => todo.completed)
-  let newTodos = todos.map((todo) => {
-    return { ...todo, completed: !allAreMarked }
-  })
+  let todos = yield select(state => state.todos);
+  let allAreMarked = todos.every(todo => todo.completed);
+  let newTodos = todos.map(todo => {
+    return {...todo, completed: !allAreMarked};
+  });
 
-  yield put({ type: 'BULK_EDIT_TODOS', todos: newTodos })
+  yield put({type: 'BULK_EDIT_TODOS', todos: newTodos});
 }
 
 export function* bulkEditTodos(action) {
-  yield axios.put(`${getBaseUrl()}/api/todos/bulk_update`, {todos: action.todos})
+  yield axios.put(`${getBaseUrl()}/api/todos/bulk_update`, {
+    todos: action.todos,
+  });
 }
 
 export function* rootSaga() {
   yield all([
-    takeLatest("FETCH_TODOS", fetchTodos),
-    takeEvery("ADD_TODO", createTodo),
-    takeEvery("DELETE_TODO", destroyTodo),
-    takeEvery("EDIT_TODO", editTodo),
-    takeLatest("CLEAR_COMPLETED", destroyAllTodos),
-    takeEvery("COMPLETE_ALL_TODOS", completeAllTodos),
-    takeEvery("BULK_EDIT_TODOS", bulkEditTodos),
-  ])
+    takeLatest('FETCH_TODOS', fetchTodos),
+    takeEvery('ADD_TODO', createTodo),
+    takeEvery('DELETE_TODO', destroyTodo),
+    takeEvery('EDIT_TODO', editTodo),
+    takeLatest('CLEAR_COMPLETED', destroyAllTodos),
+    takeEvery('COMPLETE_ALL_TODOS', completeAllTodos),
+    takeEvery('BULK_EDIT_TODOS', bulkEditTodos),
+  ]);
 }

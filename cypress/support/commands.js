@@ -117,3 +117,13 @@ loMethods.forEach(loMethodName => {
     }
   );
 });
+
+Cypress.Commands.add('stubApiTodosEndpoint', (options = {}) => {
+  return cy.route({
+    method: 'GET',
+    url: '/api/todos',
+    status: 200,
+    response: [],
+    ...options,
+  });
+});
