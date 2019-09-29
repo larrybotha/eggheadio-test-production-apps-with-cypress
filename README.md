@@ -34,6 +34,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Reference a fixture via an alias](#reference-a-fixture-via-an-alias)
   - [Reference a fixture via a property on `this`](#reference-a-fixture-via-a-property-on-this)
 - [12. Mock Network Retries with Cypress](#12-mock-network-retries-with-cypress)
+- [13. Find Unstubbed Cypress Requests with Force 404](#13-find-unstubbed-cypress-requests-with-force-404)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -923,3 +924,37 @@ describe('create entity', () => {
   })
 })
 ```
+
+## 13. Find Unstubbed Cypress Requests with Force 404
+
+[13-todos.spec.js](./cypress/integration/13-todos.spec.js)
+
+When stubbing endpoints it can be useful to have feedback that some responses
+have not been stubbed when perhaps they should have been stubbed.
+
+e.g. if we stub `POST /api/my-entity`, and then make a request on `PATCH
+/api/my-entity/1`, we may actually want to have stubbed the response on that
+`PATCH`, too.
+
+To get feedback in situations like this, Cypress allows one to
+configure `cy.server()` using `force404` to output a warning in the logs:
+
+```javascript
+describe('warns of non-stubbed responses', () => {
+  it('uses force404 to log errors', () => {
+    cy.server({force404: true});
+
+    // will not result in a 404 log
+    cy.route('POST', '/api/my-entity').as('createEntity');
+
+    // perform request
+
+    cy.wait('createEntity')
+
+    // perform patch on entity
+    // will result in 404 in logs because patch is not stubbed
+  })
+})
+```
+
+This is useful when we are working with requests that do not touch a server.
