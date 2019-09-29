@@ -940,8 +940,8 @@ To get feedback in situations like this, Cypress allows one to
 configure `cy.server()` using `force404` to output a warning in the logs:
 
 ```javascript
-describe('warns of non-stubbed responses', () => {
-  it('uses force404 to log errors', () => {
+describe('finding unstubbed responses', () => {
+  it('warns when an unstubbed request is made', () => {
     cy.server({force404: true});
 
     // will not result in a 404 log
