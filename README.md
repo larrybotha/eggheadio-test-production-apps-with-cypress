@@ -33,6 +33,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Reference a fixture via a callback](#reference-a-fixture-via-a-callback)
   - [Reference a fixture via an alias](#reference-a-fixture-via-an-alias)
   - [Reference a fixture via a property on `this`](#reference-a-fixture-via-a-property-on-this)
+- [12. Mock Network Retries with Cypress](#12-mock-network-retries-with-cypress)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -859,5 +860,66 @@ it('[test name]', function() {
 // no good
 it('[test name]', () => {
   // access this.myFixturesAlias
+})
+```
+
+## 12. Mock Network Retries with Cypress
+
+[12-todos.spec.js](./cypress/integration/12-todos.spec.js)
+
+Server errors are something that an app needs to deal with, and one of the
+things an app can attempt to do is retry requests when a request fails.
+
+We can stub responses for requests to endpoints in Cypress to simulate server
+errors, and use `redux-saga`s `retry` method to retry requests:
+
+```javascript
+// sagas/TodoSagas.js
+// ...
+
+function* createEntity(action) {
+  try {
+    /**
+     * attempt to create an entity 3 times, with a delay of 1000ms between
+     * retries if the request fails, otherwise yield a CREATE_FAILED action
+     */
+    yield retry(3, 1000, createEntityAttempt, action);
+    yield put({type: CREATE_SUCCESS});
+  } catch(err) {
+    yield put({type: 'CREATE_FAILED', ...action})
+  }
+}
+
+function* createEntityAttempt(action) {
+  // make request to server here
+}
+
+// ...
+```
+
+```javascript
+// cypress/create-entity.js
+describe('create entity', () => {
+  it('retries 3 times', () => {
+    cy.server()
+
+    // stub response for request to create endpoint with a server error
+    cy.route({url: '/api/my-entity', method: 'POST', status: 500}).as('request1');
+
+    // perform some action to trigger request
+
+    // await response
+    cy.wait('request1');
+
+    // stub next response with another server error and await response
+    cy.route({url: '/api/my-entity', method: 'POST', status: 500}).as('request2');
+    cy.wait('request2');
+
+    // stub next response with success and await response
+    cy.route({url: '/api/my-entity', method: 'POST', status: 201}).as('request3');
+    cy.wait('request3');
+
+    // assert that success is handled as expected
+  })
 })
 ```
