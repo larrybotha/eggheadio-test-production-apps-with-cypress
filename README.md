@@ -35,6 +35,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Reference a fixture via a property on `this`](#reference-a-fixture-via-a-property-on-this)
 - [12. Mock Network Retries with Cypress](#12-mock-network-retries-with-cypress)
 - [13. Find Unstubbed Cypress Requests with Force 404](#13-find-unstubbed-cypress-requests-with-force-404)
+- [14. Extend Cypress with Plugins](#14-extend-cypress-with-plugins)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -958,3 +959,38 @@ describe('finding unstubbed responses', () => {
 ```
 
 This is useful when we are working with requests that do not touch a server.
+
+## 14. Extend Cypress with Plugins
+
+[cypress/plugins/index.js](cypress/plugins/index.js)
+
+Cypress can execute code outside of the context of the browser. i.e. seeding a
+database, asserting on database snapshots, or triggering a mail campaign. This
+is because Cypress allows one to tap into the Node process running outside of
+the browser.
+
+This is done through Cypress' by adding tasks to Cypress' `task` event.
+
+To create a plugin, we define a property on the `task` event in
+`cypress/plugins/index.js`, and then execute the task in our tests.
+
+As a simple example, we can log text to Cypress' node server (i.e. not the test
+logs) using a plugin:
+
+```javascript
+// cypress/plugins/index.js
+
+module.exports = (on, config) => {
+  on('task', {
+    hello(({name})) {
+      console.log(`hello ${name}`);
+
+      return null;
+    }
+  })
+}
+```
+
+This plugin is running in its own Node context as a child process of Cypress. It
+can't mutate anything in Cypress' process, while having full access to all Node
+features.
