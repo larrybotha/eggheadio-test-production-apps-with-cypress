@@ -36,6 +36,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
 - [12. Mock Network Retries with Cypress](#12-mock-network-retries-with-cypress)
 - [13. Find Unstubbed Cypress Requests with Force 404](#13-find-unstubbed-cypress-requests-with-force-404)
 - [14. Extend Cypress with Plugins](#14-extend-cypress-with-plugins)
+- [15. Seed Your Database in Cypress](#15-seed-your-database-in-cypress)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -994,3 +995,5 @@ module.exports = (on, config) => {
 This plugin is running in its own Node context as a child process of Cypress. It
 can't mutate anything in Cypress' process, while having full access to all Node
 features.
+
+## 15. Seed Your Database in Cypress
