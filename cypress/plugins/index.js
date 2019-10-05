@@ -1,3 +1,5 @@
+const db = require('../../db-seeder');
+
 // ***********************************************************
 // This example plugins/index.js can be used to load plugins
 //
@@ -23,6 +25,15 @@ module.exports = (on, config) => {
        */
       console.log(`hello ${name}`);
 
+      return null;
+    },
+
+    'db:seed': (seed = {todos: []}) => {
+      db.seed(seed);
+
+      /**
+       * indicate that task ran successfully
+       */
       return null;
     },
   });
