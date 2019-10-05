@@ -9,7 +9,9 @@ import {
 import axios from 'axios';
 
 function getBaseUrl() {
-  return 'http://localhost:3000';
+  return window.REACT_APP_API_URL
+    ? window.REACT_APP_API_URL
+    : 'http://localhost:3000';
 }
 
 /**
