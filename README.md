@@ -36,6 +36,10 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
 - [12. Mock Network Retries with Cypress](#12-mock-network-retries-with-cypress)
 - [13. Find Unstubbed Cypress Requests with Force 404](#13-find-unstubbed-cypress-requests-with-force-404)
 - [14. Extend Cypress with Plugins](#14-extend-cypress-with-plugins)
+- [15. Seed Your Database in Cypress](#15-seed-your-database-in-cypress)
+  - [Creating a seed task](#creating-a-seed-task)
+  - [Create a seeding utility](#create-a-seeding-utility)
+  - [Separate test data from production data](#separate-test-data-from-production-data)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -994,3 +998,97 @@ module.exports = (on, config) => {
 This plugin is running in its own Node context as a child process of Cypress. It
 can't mutate anything in Cypress' process, while having full access to all Node
 features.
+
+## 15. Seed Your Database in Cypress
+
+- [cypress/integration/15-todos.spec.js](cypress/integration/15-todos.spec.js)
+- [cypress/plugins/index.js](cypress/plugins/index.js)
+
+Using tasks we can have Cypress run other Node processes, like seeding a
+database. We'll also need to separate our test environment from our dev
+environment so that data is decoupled.
+
+### Creating a seed task
+
+Create the task:
+
+```javascript
+// cypress/plugins/index.js
+const db = require('../../test/utils/db');
+
+module.exports = {
+  on('task', {
+    'db:seed: (seedData) => {
+      /**
+       * seed the db using our utility
+       */
+      db.seed(seedData);
+
+      /**
+       * return null to indicate that the task succeeded
+       */
+      return null;
+    }
+  })
+}
+```
+
+Execute the task:
+
+```javascript
+// my-test.js
+describe('seeding using a task', () => {
+  it('seeds the db', () => {
+    const seedData = {user: {name: 'Joe', email: 'joe@example.com'}};
+
+    /**
+     * execute the task to seed our db
+     */
+    cy.task('db:seed', seedData)
+
+    /**
+     * visit our app so we can see the output
+     */
+    cy.visit('/')
+  })
+})
+```
+
+### Create a seeding utility
+
+```javascript
+// test/utils/db.js
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
+
+module.exports = {
+  seed: (data) => {
+    /**
+     * use lowdb to write data to a file
+     */
+    const adapter = new FileSync('db.test.json');
+    const db = low(adapater);
+
+    db.setState(data).write();
+  }
+}
+```
+
+### Separate test data from production data
+
+Run application in development and test environments:
+
+```json
+// package.json
+// ...
+  "scripts": {
+    // ...
+    "start": "concurrently 'npm:frontend' 'npm:api' 'npm:frontend:test' 'npm:api:test'"
+    // configure test server and ui
+    // ...
+  }
+// ...
+```
+
+Set ports, db files, etc. per environment, using `NODE_ENV=test` to
+differentiate test from development

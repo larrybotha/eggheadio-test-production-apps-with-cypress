@@ -61,3 +61,6 @@ typings/
 
 # next.js build output
 .next
+
+# ignore test data
+db.test.json
