@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
 import {arrayOf} from 'test-data-bot';
-import {todoItemsBuilder} from '../fixtures/generators/todo-item';
+import {todoItemsBuilder} from '../generators/todo-item';
 
 describe('Todo application', () => {
   it('loads the page', async () => {

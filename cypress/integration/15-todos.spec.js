@@ -1,4 +1,4 @@
-const {todoItemsBuilder} = require('../fixtures/generators/todo-item');
+const {todoItemsBuilder} = require('../generators/todo-item');
 
 describe('Todo application with forced 404s', () => {
   it('seeds the database', function() {
