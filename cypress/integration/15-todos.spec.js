@@ -1,6 +1,6 @@
 const {todoItemsBuilder} = require('../generators/todo-item');
 
-describe('Todo application with forced 404s', () => {
+describe('Todo application', () => {
   it('seeds the database', function() {
     const todos = todoItemsBuilder();
 

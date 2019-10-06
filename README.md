@@ -41,6 +41,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Create a seeding utility](#create-a-seeding-utility)
   - [Separate test data from production data](#separate-test-data-from-production-data)
 - [16. Productionize Your Database Seeder in Cypress](#16-productionize-your-database-seeder-in-cypress)
+- [17. Assert on Database Snapshots in Cypress](#17-assert-on-database-snapshots-in-cypress)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1100,3 +1101,17 @@ This lesson is about creating generators instead of using fixtures. Use
 `test-data-bot`, no need for the complexity in this video.
 
 [cypress/generators/todo-items.js](cypress/generators/todo-items.js)
+
+## 17. Assert on Database Snapshots in Cypress
+
+- [cypress/integration/17-todos.spec.js](cypress/integration/17-todos.spec.js)
+- [cypress/plugins/index.js](cypress/plugins/index.js)
+- [db-seeder.js](db-seeder.js)
+
+When running E2E tests on a UI, it's important to also consider the backend in
+those tests, as assertion on a UI element, such as an item in a list, may not
+show that something in the backend, say the db, is behaving as one expects.
+
+To evaluate the db specifically, we can get snapshots of the current db and
+assert on that.
+

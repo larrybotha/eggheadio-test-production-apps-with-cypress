@@ -36,5 +36,9 @@ module.exports = (on, config) => {
        */
       return null;
     },
+
+    'db:snapshot': tableName => {
+      return db.snapshot(tableName);
+    },
   });
 };
