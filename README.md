@@ -42,6 +42,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Separate test data from production data](#separate-test-data-from-production-data)
 - [16. Productionize Your Database Seeder in Cypress](#16-productionize-your-database-seeder-in-cypress)
 - [17. Assert on Database Snapshots in Cypress](#17-assert-on-database-snapshots-in-cypress)
+- [18. Assert on XHR Requests in Cypress](#18-assert-on-xhr-requests-in-cypress)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1115,3 +1116,32 @@ show that something in the backend, say the db, is behaving as one expects.
 To evaluate the db specifically, we can get snapshots of the current db and
 assert on that.
 
+## 18. Assert on XHR Requests in Cypress
+
+[cypress/integration/18-todos.spec.js](cypress/integration/18-todos.spec.js)
+
+To assert on API requests:
+
+1. start the Cypress server with `cy.server()`
+2. spy on requests to the endpoint using `cy.route()` without providing a
+   response payload
+3. perform actions that result in the request being made
+4. wait for the response, and assert on it using `cy.wrap()` to lift the value
+   into Cypress' context
+
+```javascript
+test('assert on xhr request', () => {
+  cy.server();
+
+  cy.route({
+    method: 'POST',
+    url: /api/some-endpoint
+  }).as('createRequest');
+
+  // perform action that sends request
+
+  cy.wait('@createRequest').then(xhr => {
+    cy.wrap(xhr.status).should('equal', 201)
+  })
+})
+```
