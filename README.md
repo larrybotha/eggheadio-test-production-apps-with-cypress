@@ -40,6 +40,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
   - [Creating a seed task](#creating-a-seed-task)
   - [Create a seeding utility](#create-a-seeding-utility)
   - [Separate test data from production data](#separate-test-data-from-production-data)
+- [16. Productionize Your Database Seeder in Cypress](#16-productionize-your-database-seeder-in-cypress)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -489,7 +490,7 @@ cy.route('/api/todos', // data to respond with)
 Let's generate data using [`test-data-bot`](https://github.com/jackfranklin/test-data-bot):
 
 ```javascript
-// cypress/fixtures/generators/todo-items.js
+// cypress/generators/todo-items.js
 const {arrayOf, bool, build, fake, incrementingId} = require('test-data-bot');
 
 const todoItemBuilder = build('Todo Item').fields({
@@ -514,7 +515,7 @@ Now we can generate data for every mocked endpoint:
 ```javascript
 // 07-todos.spec.js
 import {arrayOf} from 'test-data-bot';
-import {todoItemsBuilder} from '../fixtures/generators/todo-item';
+import {todoItemsBuilder} from '../generators/todo-item';
 
 // ...
   cy.server()
@@ -1092,3 +1093,10 @@ Run application in development and test environments:
 
 Set ports, db files, etc. per environment, using `NODE_ENV=test` to
 differentiate test from development
+
+## 16. Productionize Your Database Seeder in Cypress
+
+This lesson is about creating generators instead of using fixtures. Use
+`test-data-bot`, no need for the complexity in this video.
+
+[cypress/generators/todo-items.js](cypress/generators/todo-items.js)
