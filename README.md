@@ -43,6 +43,7 @@ Notes and annotations for Egghead's [Test Production Ready Apps with Cypress](Te
 - [16. Productionize Your Database Seeder in Cypress](#16-productionize-your-database-seeder-in-cypress)
 - [17. Assert on Database Snapshots in Cypress](#17-assert-on-database-snapshots-in-cypress)
 - [18. Assert on XHR Requests in Cypress](#18-assert-on-xhr-requests-in-cypress)
+- [19. Full End-To-End Testing in Cypress](#19-full-end-to-end-testing-in-cypress)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1144,4 +1145,18 @@ test('assert on xhr request', () => {
     cy.wrap(xhr.status).should('equal', 201)
   })
 })
+```
+
+## 19. Full End-To-End Testing in Cypress
+
+[cypress/integration/19-todos.spec.js](cypress/integration/19-todos.spec.js)
+
+An alternative way to assert on API responses is by using Cypress' `its` method:
+
+```javascript
+  // ...
+  cy.wait('@myAliasedRequest')
+    .its('response.body')
+    .should('deep.equal', expectedValue)
+  // ...
 ```
