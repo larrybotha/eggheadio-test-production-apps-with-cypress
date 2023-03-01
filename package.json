@@ -28,7 +28,7 @@
   "devDependencies": {
     "@testing-library/cypress": "^5.0.0",
     "concurrently": "^4.1.2",
-    "cypress": "^3.4.1",
+    "cypress": "^12.7.0",
     "doctoc": "^1.4.0",
     "husky": "^3.0.5",
     "json-server": "^0.15.1",
